@@ -1,46 +1,6 @@
-// The array of passwords that have been generated so far
-var passwordArray = [];
+// -------- HELPER FUNCTIONS --------
 
-// The URL of the JSON file of animals / adjectives
-var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
-
-// The response from the GET request
-var response = get(url);
-
-// JSON object parsed from the response
-var myObj = JSON.parse(response);
-
-// Array of positive adjectives
-var positives = myObj.positives;
-
-// Array of animals
-var animals = myObj.animals;
-
-var defaultText = "<p>No passwords :(</p>";
-
-// ------------------ CODE ----------------------------
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    'use strict';
-    
-	var listElement = document.getElementById("generated-passwords-list");
-    listElement.innerHTML = defaultText;
-});
-
-document.addEventListener('click', function (event) {
-    'use strict';
-    
-	if (!event.target.matches('ul li')) { return; }
-
-	// Copy selected password string to clipboard
-	copyStringToClipboard(event.target.innerHTML);
-
-}, false);
-
-// ------------------ FUNCTIONS -----------------------
-
-// Sends a GET request for a specified URL
+// Sends a GET request for a specified URL and returns the response
 function get(yourUrl) {
     'use strict';
     
@@ -49,37 +9,6 @@ function get(yourUrl) {
     Httpreq.send(null);
 
     return Httpreq.responseText;
-}
-
-// Returns a random element from the passed array or returns null if no array is passed
-function getRandomElementFromArray(array) {
-    'use strict';
-    
-    if (array === null || array === undefined) {
-        return null;
-    } else {
-        var randomNumber = getRandomInt(0, array.length);
-        return array[randomNumber];
-    }
-}
-
-// Gets a random integer between min and max
-function getRandomInt(min, max) {
-    'use strict';
-    
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
-}
-
-// Clears passwords from the array and from the page
-function clearPasswords() {
-    'use strict';
-
-    passwordArray = [];
-
-    var listElement = document.getElementById("generated-passwords-list");
-    listElement.innerHTML = defaultText;
 }
 
 // Copies the passed string to the clipboard
@@ -102,7 +31,84 @@ function copyStringToClipboard(str) {
     document.body.removeChild(element);
 }
 
-// Generates a password using a random combination of positive adjectives and animals with numbers at the end
+// Gets a random integer between min and max
+function getRandomInt(min, max) {
+    'use strict';
+    
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+// Returns a random element from the passed array or returns null if no array is passed
+function getRandomElementFromArray(array) {
+    'use strict';
+    
+    if (array === null || array === undefined) {
+        return null;
+    } else {
+        var randomNumber = getRandomInt(0, array.length);
+        return array[randomNumber];
+    }
+}
+
+// -------- VARIABLES --------
+
+// The array of passwords that have been generated so far
+var passwordArray = [];
+
+// The URL of the JSON file of animals / adjectives
+var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
+
+// The response from the GET request
+var response = get(url);
+
+// JSON object parsed from the response
+var myObj = JSON.parse(response);
+
+// Array of positive adjectives
+var positives = myObj.positives;
+
+// Array of animals
+var animals = myObj.animals;
+
+var defaultText = "<p>No passwords yet :(</p>";
+
+// -------- CODE --------
+
+// Wait document to finish loading before running code to replace default text
+document.addEventListener("DOMContentLoaded", function () {
+    'use strict';
+    
+	var listElement = document.getElementById("generated-passwords-list");
+    listElement.innerHTML = defaultText;
+});
+
+// Add listener to the list elements for when they're clicked;
+// when clicked, copy password to clipboard
+document.addEventListener('click', function (event) {
+    'use strict';
+    
+	if (!event.target.matches('ul li')) { return; }
+
+	// Copy selected password string to clipboard
+	copyStringToClipboard(event.target.innerHTML);
+
+}, false);
+
+// -------- PASSWORD FUNCTIONS --------
+
+// Clears passwords from the passwords array and from the list on the page
+function clearPasswords() {
+    'use strict';
+
+    passwordArray = [];
+
+    var listElement = document.getElementById("generated-passwords-list");
+    listElement.innerHTML = defaultText;
+}
+
+// Generates a password using a random combination of positive adjectives and animals, with numbers at the end
 function generatePassword() {
     'use strict';
 
@@ -116,7 +122,7 @@ function generatePassword() {
     if (password.length <= 8) {
         remaining = 8 - password.length;
         for (i = 0; i < remaining; i += 1) {
-            password = password + getRandomInt();
+            password += getRandomInt(0, 9);
         }
     }
 
