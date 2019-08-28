@@ -1,0 +1,36 @@
+{
+  "animals": [
+    "Dog",
+    "Cat",
+    "Zebra",
+    "Elephant",
+    "Giraffe",
+    "Lion",
+    "Tiger",
+    "Panda",
+    "Koala",
+    "Penguin",
+    "Rabbit",
+    "Monkey",
+    "Horse",
+    "Cow",
+    "Bird",
+    "Bear",
+    "Mouse",
+    "Badger",
+    "Moose",
+    "Goose"
+  ],
+  "positives": [
+    "Happy",
+    "Funny",
+    "Joyful",
+    "Merry",
+    "Gleeful",
+    "Smiling",
+    "Dancing",
+    "Laughing",
+    "Cheerful",
+    "Singing"
+  ]
+}
