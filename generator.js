@@ -2,7 +2,7 @@
 var passwordArray = [];
 
 // The URL of the JSON file of animals / adjectives
-var url = "https://gist.githubusercontent.com/awhiskin/e91c0bca996c826982368cf88239d34b/raw/3b1b5332b6c4a7f9c3a99a5a42fdd4fa07a2a97a/animals.json";
+var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
 
 // The response from the GET request
 var response = Get(url);
