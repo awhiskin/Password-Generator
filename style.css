@@ -1,0 +1,39 @@
+.row {
+  /* background: #f8f9fa; */
+  /* margin-top: 20px; */
+}
+
+.col {
+  /* border: solid 1px #6c757d; */
+  padding: 10px;
+}
+
+html {
+	font-family: sans-serif;
+}
+
+ul#generated-passwords-list {
+    background: aliceblue;
+    max-width: 15%;
+    overflow: auto;
+}
+
+ul#generated-passwords-list li {
+	user-select: none;
+}
+
+ul#generated-passwords-list li:hover {
+	cursor: pointer;
+	/* color: red; */
+	font-weight: bold;
+	list-style: circle;
+}
+
+ul#generated-passwords-list li:active {
+	color: red;
+}
+
+
+li {
+	margin: 10px 0;
+}
