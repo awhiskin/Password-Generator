@@ -13,7 +13,7 @@ ul#generated-passwords-list {
 }
 
 ul#generated-passwords-list li {
-	user-select: none;
+	/* user-select: none; */
 }
 
 ul#generated-passwords-list li:hover {

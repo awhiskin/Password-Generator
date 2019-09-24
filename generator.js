@@ -108,6 +108,13 @@ function clearPasswords() {
     listElement.innerHTML = defaultText;
 }
 
+function generatePasswords(num) {
+	clearPasswords();
+	for (i = 0; i < num; i += 1) {
+		generatePassword();
+	}
+}
+
 // Generates a password using a random combination of positive adjectives and animals, with numbers at the end
 function generatePassword() {
     'use strict';
@@ -117,7 +124,7 @@ function generatePassword() {
     positive = getRandomElementFromArray(positives);
     animal = getRandomElementFromArray(animals);
 
-    password = positive + animal + getRandomInt(0, 9);
+    password = positive + animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
 
     if (password.length <= 8) {
         remaining = 8 - password.length;
@@ -128,12 +135,14 @@ function generatePassword() {
 
     passwordArray.unshift(password);
 
+/*
     if (passwordArray.length > 10) {
         passwordArray.pop();
     }
+*/	
 
     // Copy the current password to the clipboard for ease of use
-    copyStringToClipboard(password);
+    // copyStringToClipboard(password);
 
     listElement = document.getElementById("generated-passwords-list");
     listElement.innerHTML = "";
