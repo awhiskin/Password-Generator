@@ -52,6 +52,24 @@ function getRandomElementFromArray(array) {
     }
 }
 
+// Export array as a CSV
+function exportArrayToCSV() {
+	var csv = [];
+
+	for (var i = 0; i < passwordArray.length; ++i)
+	{
+	 csv.push(passwordArray[i] + "\n");
+	}	
+	
+	console.log(csv);
+	
+	var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+    hiddenElement.target = '_blank';
+    hiddenElement.download = 'passwords.csv';
+    hiddenElement.click();
+}
+
 // -------- VARIABLES --------
 
 // The array of passwords that have been generated so far
@@ -123,10 +141,19 @@ function generatePassword() {
 
     positive = getRandomElementFromArray(positives);
     animal = getRandomElementFromArray(animals);
+	
+	if (animal.length <= 4) {
+		animal = getRandomElementFromArray(animals);
+	}
 
+	// COMPLEX
     password = positive + animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+    
+	// SIMPLE
+	// password = animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
 
-    if (password.length <= 8) {
+	// pad the password out with numbers to ensure minimum length of 8
+    if (password.length < 8) {
         remaining = 8 - password.length;
         for (i = 0; i < remaining; i += 1) {
             password += getRandomInt(0, 9);
