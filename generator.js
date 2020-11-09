@@ -1,9 +1,9 @@
 // -------- HELPER FUNCTIONS --------
 
+// const { type } = require("os");
+
 // Sends a GET request for a specified URL and returns the response
 function get(yourUrl) {
-    'use strict';
-    
     var Httpreq = new XMLHttpRequest(); // a new request
     Httpreq.open("GET", yourUrl, false);
     Httpreq.send(null);
@@ -13,8 +13,6 @@ function get(yourUrl) {
 
 // Copies the passed string to the clipboard
 function copyStringToClipboard(str) {
-    'use strict';
-
     // Create new element
     var element = document.createElement('textarea');
     // Set value (string to be copied)
@@ -33,8 +31,6 @@ function copyStringToClipboard(str) {
 
 // Gets a random integer between min and max
 function getRandomInt(min, max) {
-    'use strict';
-    
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
@@ -42,8 +38,6 @@ function getRandomInt(min, max) {
 
 // Returns a random element from the passed array or returns null if no array is passed
 function getRandomElementFromArray(array) {
-    'use strict';
-    
     if (array === null || array === undefined) {
         return null;
     } else {
@@ -95,9 +89,7 @@ var defaultText = "<p>No passwords yet :(</p>";
 // -------- CODE --------
 
 // Wait document to finish loading before running code to replace default text
-document.addEventListener("DOMContentLoaded", function () {
-    'use strict';
-    
+document.addEventListener("DOMContentLoaded", function () {    
 	var listElement = document.getElementById("generated-passwords-list");
     listElement.innerHTML = defaultText;
 });
@@ -105,9 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Add listener to the list elements for when they're clicked;
 // when clicked, copy password to clipboard
 document.addEventListener('click', function (event) {
-    'use strict';
-    
-	if (!event.target.matches('ul li')) { return; }
+    if (!event.target.matches('ul li')) { return; }
 
 	// Copy selected password string to clipboard
 	copyStringToClipboard(event.target.innerHTML);
@@ -118,8 +108,6 @@ document.addEventListener('click', function (event) {
 
 // Clears passwords from the passwords array and from the list on the page
 function clearPasswords() {
-    'use strict';
-
     passwordArray = [];
 
     var listElement = document.getElementById("generated-passwords-list");
@@ -133,28 +121,50 @@ function generatePasswords(num) {
 	}
 }
 
+function makeid(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+ }
+
 // Generates a password using a random combination of positive adjectives and animals, with numbers at the end
 function generatePassword() {
-    'use strict';
-
     var positive, animal, password, remaining, i, listElement, listItem;
+    
+    var passwordLength = document.getElementById("generated-length").value;
+    if (passwordLength == null) { passwordLength = 8; }
 
     positive = getRandomElementFromArray(positives);
     animal = getRandomElementFromArray(animals);
 	
 	if (animal.length <= 4) {
 		animal = getRandomElementFromArray(animals);
-	}
+    }
 
-	// COMPLEX
-    password = positive + animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+    type = document.getElementById("generated-type");
     
-	// SIMPLE
-	// password = animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+    switch(type.value) {
+        case "simple":
+            password = animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+          break;
+        case "complex":
+            password = positive + animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+          break;
+        case "random":
+            password = makeid(passwordLength);
+            break;
+        default:
+            password = "Tara123";
+            break
+      }
 
 	// pad the password out with numbers to ensure minimum length of 8
-    if (password.length < 8) {
-        remaining = 8 - password.length;
+    if (password.length < passwordLength) {
+        remaining = passwordLength - password.length;
         for (i = 0; i < remaining; i += 1) {
             password += getRandomInt(0, 9);
         }
