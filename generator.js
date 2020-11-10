@@ -59,19 +59,28 @@ function makeid(length) {
 
 // Export array as a CSV
 function exportArrayToCSV() {
-	var csv = [];
+    if (passwordArray.length == 0) {
+        alert("No passwords to export.")
+        return;
+    }
+    
+    let csv = "data:text/csv;charset=utf-8,";
+    csv += "Password Value\r\n";
 
-	for (var i = 0; i < passwordArray.length; ++i)
-	{
-	 csv.push(passwordArray[i] + "\n");
-	}	
-	
-	console.log(csv);
-	
+    var rows = []
+    passwordArray.forEach(element => {
+        rows.push([element])
+    });
+
+    rows.forEach(function(rowArray) {
+        let row = rowArray.join(",");
+        csv += row + "\r\n";
+    });
+
 	var hiddenElement = document.createElement('a');
-    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+    hiddenElement.href = encodeURI(csv);
     hiddenElement.target = '_blank';
-    hiddenElement.download = 'passwords.csv';
+    hiddenElement.download = 'passwords' + Date.now() + '.csv';
     hiddenElement.click();
 }
 
@@ -149,8 +158,9 @@ function clearPasswords() {
     listElement.innerHTML = defaultText;
 }
 
-function generatePasswords(num) {
-	clearPasswords();
+function generatePasswords(num, clearAll) {
+    if (clearAll) { clearPasswords(); }
+    
     var t0 = performance.now()
 	for (i = 0; i < num; i += 1) {
 		generatePassword();
