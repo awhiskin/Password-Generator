@@ -46,6 +46,17 @@ function getRandomElementFromArray(array) {
     }
 }
 
+// Helper function to generate random string of defined length from a series of characters
+function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
 // Export array as a CSV
 function exportArrayToCSV() {
 	var csv = [];
@@ -85,6 +96,8 @@ var positives = myObj.positives;
 var animals = myObj.animals;
 
 var defaultText = "<p>No passwords yet :(</p>";
+var defaultLength = 12;
+var defaultType = "simple";
 
 // -------- CODE --------
 
@@ -92,6 +105,28 @@ var defaultText = "<p>No passwords yet :(</p>";
 document.addEventListener("DOMContentLoaded", function () {    
 	var listElement = document.getElementById("generated-passwords-list");
     listElement.innerHTML = defaultText;
+
+    // Retain last selected type across sessions
+    let typeElement = document.getElementById("generated-type");
+    // Set event listener whenever selection is changed
+    typeElement.addEventListener("change", function() {
+        localStorage.setItem("generated-type", typeElement.value);
+    });
+    // Retrieve stored value from localStorage
+    let storedType = localStorage.getItem("generated-type");
+    if (storedType != null) { typeElement.value = storedType; }
+    else { typeElement.value = defaultType; }
+    
+    // Retain password size across sessions
+    let lengthElement = document.getElementById("generated-length");
+    // Set event listener whenever selection is changed
+    lengthElement.addEventListener("change", function() {
+        localStorage.setItem("generated-length", lengthElement.value);
+    });
+    // Retrieve stored value from localStorage
+    let storedLength = localStorage.getItem("generated-length");
+    if (storedLength != null) { lengthElement.value = storedLength; }
+    else { lengthElement.value = defaultLength; }
 });
 
 // Add listener to the list elements for when they're clicked;
@@ -116,20 +151,13 @@ function clearPasswords() {
 
 function generatePasswords(num) {
 	clearPasswords();
+    var t0 = performance.now()
 	for (i = 0; i < num; i += 1) {
 		generatePassword();
 	}
+    var t1 = performance.now()
+    console.log("Call to generatePasswords(" + num + ") took " + (t1 - t0) + " milliseconds.")
 }
-
-function makeid(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
- }
 
 // Generates a password using a random combination of positive adjectives and animals, with numbers at the end
 function generatePassword() {
@@ -162,7 +190,7 @@ function generatePassword() {
             break
       }
 
-	// pad the password out with numbers to ensure minimum length of 8
+	// Pad the password out with numbers to ensure minimum length
     if (password.length < passwordLength) {
         remaining = passwordLength - password.length;
         for (i = 0; i < remaining; i += 1) {
@@ -171,12 +199,6 @@ function generatePassword() {
     }
 
     passwordArray.unshift(password);
-
-/*
-    if (passwordArray.length > 10) {
-        passwordArray.pop();
-    }
-*/	
 
     // Copy the current password to the clipboard for ease of use
     // copyStringToClipboard(password);
