@@ -20,9 +20,9 @@
     "Badger",
     "Moose",
     "Goose",
-	"People",
-	"Student",
-	"Teacher"
+	  "People",
+	  "Student",
+    "Teacher"
   ],
   "positives": [
     "Happy",
@@ -34,13 +34,24 @@
     "Dancing",
     "Laughing",
     "Cheerful",
-    "Singing",
-	"Amazing",
-	"Awesome",
-	"Excellent",
-	"Fabulous",
-	"Fantastic",
-	"Incredible",
-	"Splendid"
+    "Singing"
+  ],
+  "positives_object" : [
+    "Amazing",
+    "Awesome",
+    "Excellent",
+    "Fabulous",
+    "Fantastic",
+    "Incredible",
+    "Splendid",
+    "Lovely"
+  ],
+  "geographical_objects": [
+    "Rainbow",
+    "Waterfall",
+    "Volcano",
+    "Mountain",
+    "Forest",
+    "River"
   ]
 }
