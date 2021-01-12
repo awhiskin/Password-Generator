@@ -104,9 +104,15 @@ var positives = myObj.positives;
 // Array of animals
 var animals = myObj.animals;
 
+// Array of positive adjectives, pertaining only to objects
+var positives_object = myObj.positives_object;
+
+// Array of geographical features
+var geographical_objects = myObj.geographical_objects;
+
 var defaultText = "<p>No passwords yet :(</p>";
 var defaultLength = 12;
-var defaultType = "simple";
+var defaultType = "complex";
 
 // -------- CODE --------
 
@@ -171,26 +177,42 @@ function generatePasswords(num, clearAll) {
 
 // Generates a password using a random combination of positive adjectives and animals, with numbers at the end
 function generatePassword() {
-    var positive, animal, password, remaining, i, listElement, listItem;
+    var positive, animal, positive_object, geographical, password, remaining, i, listElement, listItem;
     
     var passwordLength = document.getElementById("generated-length").value;
     if (passwordLength == null) { passwordLength = 8; }
 
     positive = getRandomElementFromArray(positives);
     animal = getRandomElementFromArray(animals);
+    positive_object = getRandomElementFromArray(positives_object);
+    geographical = getRandomElementFromArray(geographical_objects);
 	
 	if (animal.length <= 4) {
 		animal = getRandomElementFromArray(animals);
+    }
+
+// TODO: environment words
+
+    var object_word = "";
+    let object_type = document.getElementById("generated-object");
+    if (object_type.value == "animal") {
+        object_word = animal;
+    } else {
+        object_word = geographical;
     }
 
     type = document.getElementById("generated-type");
     
     switch(type.value) {
         case "simple":
-            password = animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            password = object_word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
           break;
         case "complex":
-            password = positive + animal + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            var adjective = positive;
+            if (object_type.value != "animal") {
+                adjective = positive_object;
+            }
+            password = adjective + object_word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
           break;
         case "random":
             password = makeid(passwordLength);
