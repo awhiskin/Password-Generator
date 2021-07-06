@@ -1,16 +1,5 @@
 // -------- HELPER FUNCTIONS --------
 
-// const { type } = require("os");
-
-// Sends a GET request for a specified URL and returns the response
-function get(yourUrl) {
-    var Httpreq = new XMLHttpRequest(); // a new request
-    Httpreq.open("GET", yourUrl, false);
-    Httpreq.send(null);
-
-    return Httpreq.responseText;
-}
-
 // Copies the passed string to the clipboard
 function copyStringToClipboard(str) {
     // Create new element
@@ -47,7 +36,7 @@ function getRandomElementFromArray(array) {
 }
 
 // Helper function to generate random string of defined length from a series of characters
-function makeid(length) {
+function makeID(length) {
     var result = '';
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?';
     var charactersLength = characters.length;
@@ -90,36 +79,27 @@ function exportArrayToCSV() {
 var passwordArray = [];
 
 // The URL of the JSON file of animals / adjectives
-// var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
 var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/words.json";
 
+// Get URL and read into response variable
+var httpRequest = new XMLHttpRequest();
+httpRequest.open("GET", url, false);
+httpRequest.send(null);
 
-// The response from the GET request
-var response = get(url);
+var response = httpRequest.responseText;
 
 // JSON object parsed from the response
 var myObj = JSON.parse(response);
 
-// Array of positive adjectives
-var positives = myObj.positives;
-
-// Array of animals
-var animals = myObj.animals;
-
-// Array of positive adjectives, pertaining only to objects
-var positives_object = myObj.positives_object;
-
-// Array of geographical features
-var geographical_objects = myObj.geographical_objects;
-
-// Array of simple colours
-var simple_colours = myObj.simple_colours;
-
-// Array of simple words
-var simple_words = myObj.simple_words;
+var positives = myObj.positives;                        // Array of positive adjectives
+var animals = myObj.animals;                            // Array of animals
+var positives_object = myObj.positives_object;          // Array of positive adjectives, pertaining only to objects
+var geographical_objects = myObj.geographical_objects;  // Array of geographical features
+var simple_colours = myObj.simple_colours;              // Array of simple colours
+var simple_words = myObj.simple_words;                  // Array of simple words
 
 const defaultText = "<p>No passwords yet :(</p>";
-const defaultLength = 12;
+const defaultLength = 10;
 const defaultType = "complex";
 const defaultObjectType = "geographical";
 
@@ -131,13 +111,13 @@ document.addEventListener("DOMContentLoaded", function () {
     listElement.innerHTML = defaultText;
 
     // Retain last selected type across sessions
-    let typeElement = document.getElementById("generated-type");
+    let typeElement = document.getElementById("generated-complexity");
     // Set event listener whenever selection is changed
     typeElement.addEventListener("change", function() {
-        localStorage.setItem("generated-type", typeElement.value);
+        localStorage.setItem("generated-complexity", typeElement.value);
     });
     // Retrieve stored value from localStorage
-    let storedType = localStorage.getItem("generated-type");
+    let storedType = localStorage.getItem("generated-complexity");
     if (storedType != null) { typeElement.value = storedType; }
     else { typeElement.value = defaultType; }
 	
@@ -203,9 +183,6 @@ function generatePassword() {
     
     var passwordLength = document.getElementById("generated-length").value;
     if (passwordLength == null) { passwordLength = 8; }
-
-    // positive = getRandomElementFromArray(positives);
-    // animal = getRandomElementFromArray(animals);
 	
     let object_type = document.getElementById("generated-object");
 	switch(object_type.value) {
@@ -217,7 +194,7 @@ function generatePassword() {
 			word = getRandomElementFromArray(geographical_objects);
 			adjective = getRandomElementFromArray(positives_object);
 			break;
-		case "colour":
+		case "simple_mix":
 			word = getRandomElementFromArray(simple_words);
 			adjective = getRandomElementFromArray(simple_colours);
 			break;
@@ -225,20 +202,20 @@ function generatePassword() {
 			break;
 	}
 
-    type = document.getElementById("generated-type");
+    type = document.getElementById("generated-complexity");
     
     switch(type.value) {
 		case "very_simple":
 			password = adjective + word + getRandomInt(0, 9);
 			break;
         case "simple":
-            password = word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            password = word + getRandomInt(0, 9);
           break;
         case "complex":
-            password = adjective + word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            password = adjective + word + getRandomInt(0, 9);
           break;
         case "random":
-            password = makeid(passwordLength);
+            password = makeID(passwordLength);
             break;
         default:
             password = "Tara123";
@@ -253,10 +230,12 @@ function generatePassword() {
         }
     }
 
-    passwordArray.unshift(password);
+    if (passwordArray.includes(password)) {
+        generatePassword();
+        return false;
+    }
 
-    // Copy the current password to the clipboard for ease of use
-    // copyStringToClipboard(password);
+    passwordArray.unshift(password);
 
     listElement = document.getElementById("generated-passwords-list");
     listElement.innerHTML = "";
@@ -272,14 +251,15 @@ function generatePassword() {
         listElement.appendChild(listItem);
     }
 }
-	
+
+// When 'Very Simple' option is selected, this function is run
 function verySimpleHandler() {
-    var type = document.getElementById("generated-type");
+    var type = document.getElementById("generated-complexity");
 	var object_type = document.getElementById("generated-object");
 	if (type.value == "very_simple")
 	{
 		localStorage.setItem("generated-object", object_type.value);
-		object_type.value = "colour";
+		object_type.value = "simple_mix";
 		object_type.disabled = true;
 	} else {
 		let storedObjectType = localStorage.getItem("generated-object");
