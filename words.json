@@ -20,8 +20,8 @@
     "Badger",
     "Moose",
     "Goose",
-	"People",
-	"Student",
+    "People",
+    "Student",
     "Teacher"
   ],
   "positives": [
@@ -36,7 +36,7 @@
     "Cheerful",
     "Singing"
   ],
-  "positives_object" : [
+  "positives_object": [
     "Amazing",
     "Awesome",
     "Excellent",
@@ -55,27 +55,27 @@
     "River"
   ],
   "simple_colours": [
-	"Red",
-	"Blue",
-	"Green",
-	"Grey",
-	"Gold",
-	"Pink",
-	"White"
+    "Red",
+    "Blue",
+    "Green",
+    "Grey",
+    "Gold",
+    "Pink",
+    "White"
   ],
   "simple_words": [
-	"Dog",
-	"Cat",
-	"Pig",
-	"Fox",
-	"Cow",
-	"Ant",
-	"Bee",
-	"Egg",
-	"Bear",
-	"Lion",
-	"Duck",
-	"Bull",
-	"Wolf"
+    "Dog",
+    "Cat",
+    "Pig",
+    "Fox",
+    "Cow",
+    "Ant",
+    "Bee",
+    "Egg",
+    "Bear",
+    "Lion",
+    "Duck",
+    "Bull",
+    "Wolf"
   ]
 }
