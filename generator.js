@@ -112,9 +112,16 @@ var positives_object = myObj.positives_object;
 // Array of geographical features
 var geographical_objects = myObj.geographical_objects;
 
-var defaultText = "<p>No passwords yet :(</p>";
-var defaultLength = 12;
-var defaultType = "complex";
+// Array of simple colours
+var simple_colours = myObj.simple_colours;
+
+// Array of simple words
+var simple_words = myObj.simple_words;
+
+const defaultText = "<p>No passwords yet :(</p>";
+const defaultLength = 12;
+const defaultType = "complex";
+const defaultObjectType = "geographical";
 
 // -------- CODE --------
 
@@ -133,6 +140,17 @@ document.addEventListener("DOMContentLoaded", function () {
     let storedType = localStorage.getItem("generated-type");
     if (storedType != null) { typeElement.value = storedType; }
     else { typeElement.value = defaultType; }
+	
+	// Retain last selected object type across sessions
+    let objectTypeElement = document.getElementById("generated-object");
+    // Set event listener whenever selection is changed
+    objectTypeElement.addEventListener("change", function() {
+        localStorage.setItem("generated-object", objectTypeElement.value);
+    });
+    // Retrieve stored value from localStorage
+    let storedObjectType = localStorage.getItem("generated-object");
+    if (storedObjectType != null) { objectTypeElement.value = storedObjectType; }
+    else { objectTypeElement.value = defaultObjectType; }
     
     // Retain password size across sessions
     let lengthElement = document.getElementById("generated-length");
@@ -144,6 +162,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let storedLength = localStorage.getItem("generated-length");
     if (storedLength != null) { lengthElement.value = storedLength; }
     else { lengthElement.value = defaultLength; }
+	
+	verySimpleHandler();
 });
 
 // Add listener to the list elements for when they're clicked;
@@ -177,44 +197,45 @@ function generatePasswords(num, clearAll) {
     console.log("Call to generatePasswords(" + num + ") took " + (t1 - t0) + " milliseconds.")
 }
 
-// Generates a password using a random combination of positive adjectives and animals, with numbers at the end
+// Generates a password using a random combination of adjectives and words, with numbers at the end
 function generatePassword() {
-    var positive, animal, positive_object, geographical, password, remaining, i, listElement, listItem;
+    var word, adjective, password, remaining, listElement, listItem;
     
     var passwordLength = document.getElementById("generated-length").value;
     if (passwordLength == null) { passwordLength = 8; }
 
-    positive = getRandomElementFromArray(positives);
-    animal = getRandomElementFromArray(animals);
-    positive_object = getRandomElementFromArray(positives_object);
-    geographical = getRandomElementFromArray(geographical_objects);
+    // positive = getRandomElementFromArray(positives);
+    // animal = getRandomElementFromArray(animals);
 	
-	if (animal.length <= 4) {
-		animal = getRandomElementFromArray(animals);
-    }
-
-// TODO: environment words
-
-    var object_word = "";
     let object_type = document.getElementById("generated-object");
-    if (object_type.value == "animal") {
-        object_word = animal;
-    } else {
-        object_word = geographical;
-    }
+	switch(object_type.value) {
+		case "animal":
+			word = getRandomElementFromArray(animals);
+			adjective = getRandomElementFromArray(positives);
+			break;
+		case "geographical":
+			word = getRandomElementFromArray(geographical_objects);
+			adjective = getRandomElementFromArray(positives_object);
+			break;
+		case "colour":
+			word = getRandomElementFromArray(simple_words);
+			adjective = getRandomElementFromArray(simple_colours);
+			break;
+		default:
+			break;
+	}
 
     type = document.getElementById("generated-type");
     
     switch(type.value) {
+		case "very_simple":
+			password = adjective + word + getRandomInt(0, 9);
+			break;
         case "simple":
-            password = object_word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            password = word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
           break;
         case "complex":
-            var adjective = positive;
-            if (object_type.value != "animal") {
-                adjective = positive_object;
-            }
-            password = adjective + object_word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            password = adjective + word + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
           break;
         case "random":
             password = makeid(passwordLength);
@@ -227,7 +248,7 @@ function generatePassword() {
 	// Pad the password out with numbers to ensure minimum length
     if (password.length < passwordLength) {
         remaining = passwordLength - password.length;
-        for (i = 0; i < remaining; i += 1) {
+        for (var i = 0; i < remaining; i += 1) {
             password += getRandomInt(0, 9);
         }
     }
@@ -247,8 +268,28 @@ function generatePassword() {
         // Add the item text
         listItem.innerHTML = passwordArray[i];
 
-
         // Add listItem to the listElement
         listElement.appendChild(listItem);
     }
+}
+	
+function verySimpleHandler() {
+    var type = document.getElementById("generated-type");
+	var object_type = document.getElementById("generated-object");
+	if (type.value == "very_simple")
+	{
+		localStorage.setItem("generated-object", object_type.value);
+		object_type.value = "colour";
+		object_type.disabled = true;
+	} else {
+		let storedObjectType = localStorage.getItem("generated-object");
+		if (storedObjectType != null) { object_type.value = storedObjectType; }
+		else { object_type.value = defaultObjectType; }
+		object_type.disabled = false;
+	}
+}
+
+function resetPage() {
+	localStorage.clear();
+	location.reload();
 }
