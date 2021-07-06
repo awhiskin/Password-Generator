@@ -90,7 +90,9 @@ function exportArrayToCSV() {
 var passwordArray = [];
 
 // The URL of the JSON file of animals / adjectives
-var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
+// var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/animals.json";
+var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/words.json";
+
 
 // The response from the GET request
 var response = get(url);
