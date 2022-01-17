@@ -46,6 +46,11 @@ function makeID(length) {
     return result;
 }
 
+function getRandomSymbol() {
+	var characters = '!@#$%^&*?';
+	return characters.charAt(Math.floor(Math.random() * characters.length));
+}
+
 // Export array as a CSV
 function exportArrayToCSV() {
     if (passwordArray.length == 0) {
@@ -99,7 +104,7 @@ var simple_colours = myObj.simple_colours;              // Array of simple colou
 var simple_words = myObj.simple_words;                  // Array of simple words
 
 const defaultText = "<p>No passwords yet :(</p>";
-const defaultLength = 10;
+const defaultLength = 16;
 const defaultType = "complex";
 const defaultObjectType = "geographical";
 
@@ -143,7 +148,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (storedLength != null) { lengthElement.value = storedLength; }
     else { lengthElement.value = defaultLength; }
 	
-	verySimpleHandler();
+	// verySimpleHandler();
+	typeHandler();
 });
 
 // Add listener to the list elements for when they're clicked;
@@ -203,6 +209,7 @@ function generatePassword() {
 	}
 
     type = document.getElementById("generated-complexity");
+	symbol_bool = document.getElementById("generated-symbol");
     
     switch(type.value) {
 		case "very_simple":
@@ -212,7 +219,7 @@ function generatePassword() {
             password = word + getRandomInt(0, 9);
           break;
         case "complex":
-            password = adjective + word + getRandomInt(0, 9);
+            password = adjective + word + (symbol_bool.checked ? getRandomSymbol() : "") + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
           break;
         case "random":
             password = makeID(passwordLength);
@@ -252,20 +259,48 @@ function generatePassword() {
     }
 }
 
-// When 'Very Simple' option is selected, this function is run
-function verySimpleHandler() {
-    var type = document.getElementById("generated-complexity");
+function typeHandler() {
+	var type = document.getElementById("generated-complexity");
 	var object_type = document.getElementById("generated-object");
-	if (type.value == "very_simple")
-	{
-		localStorage.setItem("generated-object", object_type.value);
-		object_type.value = "simple_mix";
-		object_type.disabled = true;
-	} else {
-		let storedObjectType = localStorage.getItem("generated-object");
-		if (storedObjectType != null) { object_type.value = storedObjectType; }
-		else { object_type.value = defaultObjectType; }
-		object_type.disabled = false;
+	let storedObjectType = localStorage.getItem("generated-object");
+	
+	switch(type.value) {
+		case "simple":
+			storedObjectType = localStorage.getItem("generated-object");
+			if (storedObjectType != null) { object_type.value = storedObjectType; }
+			else { object_type.value = defaultObjectType; }
+			object_type.disabled = false;
+			
+			symbol_bool = document.getElementById("generated-symbol");
+			symbol_bool.disabled = true;
+			symbol_bool.checked = false;
+			break;
+		case "very_simple":
+			localStorage.setItem("generated-object", object_type.value);
+			object_type.value = "simple_mix";
+			object_type.disabled = true;
+			symbol_bool = document.getElementById("generated-symbol");
+			symbol_bool.disabled = true;
+			symbol_bool.checked = false;
+			break;
+		case "random":
+			localStorage.setItem("generated-object", object_type.value);
+			object_type.value = "random";
+			object_type.disabled = true;
+			symbol_bool = document.getElementById("generated-symbol");
+			symbol_bool.disabled = true;
+			symbol_bool.checked = false;
+			break;
+		default:
+			storedObjectType = localStorage.getItem("generated-object");
+			if (storedObjectType != null) { object_type.value = storedObjectType; }
+			else { object_type.value = defaultObjectType; }
+			object_type.disabled = false;
+			
+			symbol_bool = document.getElementById("generated-symbol");
+			symbol_bool.disabled = false;
+			symbol_bool.checked = true;
+			break;
 	}
 }
 
