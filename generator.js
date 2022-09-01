@@ -58,8 +58,9 @@ function exportArrayToCSV() {
         return;
     }
     
-    let csv = "data:text/csv;charset=utf-8,";
-    csv += "Password Value\r\n";
+    let prefix = "data:text/csv;charset=utf-8,";
+    let header = "Password Value";
+    let csv = header + "\r\n";
 
     var rows = []
     passwordArray.forEach(element => {
@@ -71,11 +72,12 @@ function exportArrayToCSV() {
         csv += row + "\r\n";
     });
 
-	var hiddenElement = document.createElement('a');
-    hiddenElement.href = encodeURI(csv);
-    hiddenElement.target = '_blank';
-    hiddenElement.download = 'passwords' + Date.now() + '.csv';
-    hiddenElement.click();
+    var encodedUri = prefix + encodeURIComponent(csv);
+	var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "passwords" + Date.now() + ".csv")
+    link.setAttribute("target", "_blank");
+    link.click();
 }
 
 // -------- VARIABLES --------
