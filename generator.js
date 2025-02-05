@@ -191,48 +191,58 @@ function generatePassword() {
     
     var passwordLength = document.getElementById("generated-length").value;
     if (passwordLength == null) { passwordLength = 8; }
-	
+    
     let object_type = document.getElementById("generated-object");
-	switch(object_type.value) {
-		case "animal":
-			word = getRandomElementFromArray(animals);
-			adjective = getRandomElementFromArray(positives);
-			break;
-		case "geographical":
-			word = getRandomElementFromArray(geographical_objects);
-			adjective = getRandomElementFromArray(positives_object);
-			break;
-		case "simple_mix":
-			word = getRandomElementFromArray(simple_words);
-			adjective = getRandomElementFromArray(simple_colours);
-			break;
-		default:
-			break;
-	}
+    switch(object_type.value) {
+        case "animal":
+            word = getRandomElementFromArray(animals);
+            adjective = getRandomElementFromArray(positives);
+            break;
+        case "geographical":
+            word = getRandomElementFromArray(geographical_objects);
+            adjective = getRandomElementFromArray(positives_object);
+            break;
+        case "simple_mix":
+            word = getRandomElementFromArray(simple_words);
+            adjective = getRandomElementFromArray(simple_colours);
+            break;
+        default:
+            break;
+    }
 
     type = document.getElementById("generated-complexity");
-	symbol_bool = document.getElementById("generated-symbol");
+    symbol_bool = document.getElementById("generated-symbol");
     
     switch(type.value) {
-		case "very_simple":
-			password = adjective + word + getRandomInt(0, 9);
-			break;
+        case "very_simple":
+            // Force lowercase and add exactly 2 digits
+            word = word.toLowerCase();
+            password = word + getRandomInt(0, 9) + getRandomInt(0, 9);;
+            break;
+            
         case "simple":
-            password = word + getRandomInt(0, 9);
-          break;
+            // Force lowercase and add exactly 2 digits
+            word = word.toLowerCase();
+            adjective = adjective.toLowerCase();
+            password = adjective + word + getRandomInt(0, 9) + getRandomInt(0, 9);
+            break;
+            
         case "complex":
-            password = adjective + word + (symbol_bool.checked ? getRandomSymbol() : "") + getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
-          break;
+            password = adjective + word + (symbol_bool.checked ? getRandomSymbol() : "") + 
+                      getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
+            break;
+            
         case "random":
             password = makeID(passwordLength);
             break;
+            
         default:
-            password = "Tara123";
-            break
-      }
+            password = "default";
+            break;
+    }
 
-	// Pad the password out with numbers to ensure minimum length
-    if (password.length < passwordLength) {
+    // Length padding only applies to complex and random modes
+    if (type.value !== "simple" && type.value !== "very_simple" && password.length < passwordLength) {
         remaining = passwordLength - password.length;
         for (var i = 0; i < remaining; i += 1) {
             password += getRandomInt(0, 9);
@@ -250,13 +260,8 @@ function generatePassword() {
     listElement.innerHTML = "";
 
     for (i = 0; i < passwordArray.length; i += 1) {
-        // create an item for each one
         listItem = document.createElement('li');
-
-        // Add the item text
         listItem.innerHTML = passwordArray[i];
-
-        // Add listItem to the listElement
         listElement.appendChild(listItem);
     }
 }
