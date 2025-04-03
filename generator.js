@@ -377,7 +377,7 @@ function clearPasswords() {
 // Export passwords to CSV file
 function exportPasswordsToCSV() {
     if (passwordList.length === 0) {
-        alert('No passwords to export.');
+        // alert('No passwords to export.');
         return;
     }
     
