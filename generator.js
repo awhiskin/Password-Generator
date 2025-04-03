@@ -1,317 +1,495 @@
-// -------- HELPER FUNCTIONS --------
+// Password Generator App
 
-// Copies the passed string to the clipboard
-function copyStringToClipboard(str) {
-    // Create new element
-    var element = document.createElement('textarea');
-    // Set value (string to be copied)
-    element.value = str;
-    // Set non-editable to avoid focus and move outside of view
-    element.setAttribute('readonly', '');
-    element.style = {position: 'absolute', left: '-9999px'};
-    document.body.appendChild(element);
-    // Select text inside element
-    element.select();
-    // Copy text to clipboard
-    document.execCommand('copy');
-    // Remove temporary element
-    document.body.removeChild(element);
+// Store generated passwords
+let passwordList = [];
+let passwordSettings = {
+    type: 'strong',
+    category: 'nature',
+    length: 16,
+    uppercase: true,
+    numbers: true,
+    symbols: true
+};
+
+// DOM Elements
+let elements;
+
+// Words data for password generation
+let wordData;
+
+// Initialize the application when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Get DOM elements
+    elements = {
+        typeSelect: document.getElementById('password-type'),
+        categorySelect: document.getElementById('word-category'),
+        lengthInput: document.getElementById('password-length'),
+        lengthValue: document.getElementById('length-value'),
+        uppercaseCheckbox: document.getElementById('include-uppercase'),
+        numbersCheckbox: document.getElementById('include-numbers'),
+        symbolsCheckbox: document.getElementById('include-symbols'),
+        generateBtn: document.getElementById('generate-btn'),
+        clearBtn: document.getElementById('clear-btn'),
+        exportBtn: document.getElementById('export-btn'),
+        resetBtn: document.getElementById('reset-btn'),
+        passwordList: document.getElementById('password-list'),
+        typeDescription: document.getElementById('type-description'),
+        dropdownToggle: document.querySelector('.dropdown-toggle'),
+        dropdownMenu: document.querySelector('.dropdown-menu')
+    };
+
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Load word data
+    loadWordData();
+    
+    // Load settings from localStorage
+    loadSettings();
+    
+    // Update UI to match settings
+    updateUI();
+});
+
+// Load word data from GitHub repository
+function loadWordData() {
+    const url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/words.json";
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            wordData = data;
+            console.log("Word data loaded successfully from GitHub");
+        })
+        .catch(error => {
+            console.error('Error loading word data:', error);
+        });
 }
 
-// Gets a random integer between min and max
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+// Setup all event listeners
+function setupEventListeners() {
+    // Password type change
+    elements.typeSelect.addEventListener('change', function() {
+        passwordSettings.type = this.value;
+        saveSettings();
+        handleTypeChange();
+    });
+    
+    // Category change
+    elements.categorySelect.addEventListener('change', function() {
+        passwordSettings.category = this.value;
+        saveSettings();
+    });
+    
+    // Length slider
+    elements.lengthInput.addEventListener('input', function() {
+        passwordSettings.length = parseInt(this.value);
+        elements.lengthValue.textContent = this.value;
+        saveSettings();
+    });
+    
+    // Checkboxes
+    elements.uppercaseCheckbox.addEventListener('change', function() {
+        passwordSettings.uppercase = this.checked;
+        saveSettings();
+    });
+    
+    elements.numbersCheckbox.addEventListener('change', function() {
+        passwordSettings.numbers = this.checked;
+        saveSettings();
+    });
+    
+    elements.symbolsCheckbox.addEventListener('change', function() {
+        passwordSettings.symbols = this.checked;
+        saveSettings();
+    });
+    
+    // Generate button
+    elements.generateBtn.addEventListener('click', function() {
+        generatePassword();
+    });
+    
+    // Dropdown toggle
+    elements.dropdownToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.dropdownMenu.classList.toggle('show');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown-container')) {
+            elements.dropdownMenu.classList.remove('show');
+        }
+    });
+    
+    // Dropdown menu items
+    document.querySelectorAll('.dropdown-menu a').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const count = parseInt(this.getAttribute('data-count'));
+            generateMultiplePasswords(count);
+            elements.dropdownMenu.classList.remove('show');
+        });
+    });
+    
+    // Clear button
+    elements.clearBtn.addEventListener('click', function() {
+        clearPasswords();
+    });
+    
+    // Export button
+    elements.exportBtn.addEventListener('click', function() {
+        exportPasswordsToCSV();
+    });
+    
+    // Reset button
+    elements.resetBtn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to reset all settings?')) {
+            resetAllSettings();
+        }
+    });
+    
+    // Password list click handler for copying
+    elements.passwordList.addEventListener('click', function(event) {
+        const listItem = event.target.closest('li');
+        if (listItem && !listItem.classList.contains('empty-message')) {
+            copyToClipboard(listItem.textContent);
+            showToast('Password copied to clipboard!');
+        }
+    });
 }
 
-// Returns a random element from the passed array or returns null if no array is passed
-function getRandomElementFromArray(array) {
-    if (array === null || array === undefined) {
-        return null;
+// Handle password type change
+function handleTypeChange() {
+    const type = passwordSettings.type;
+    
+    // Update description text
+    switch(type) {
+        case 'memorable':
+            elements.typeDescription.textContent = 'Easy to remember word combinations';
+            break;
+        case 'strong':
+            elements.typeDescription.textContent = 'Strong passwords with words and numbers';
+            break;
+        case 'complex':
+            elements.typeDescription.textContent = 'Complex mixed character passwords';
+            break;
+        case 'random':
+            elements.typeDescription.textContent = 'Completely random character sequences';
+            break;
+    }
+    
+    // Enable/disable controls based on type
+    if (type === 'random') {
+        elements.categorySelect.disabled = true;
     } else {
-        var randomNumber = getRandomInt(0, array.length);
-        return array[randomNumber];
+        elements.categorySelect.disabled = false;
     }
 }
 
-// Helper function to generate random string of defined length from a series of characters
-function makeID(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-function getRandomSymbol() {
-	var characters = '!@#$%^&*?';
-	return characters.charAt(Math.floor(Math.random() * characters.length));
-}
-
-// Export array as a CSV
-function exportArrayToCSV() {
-    if (passwordArray.length == 0) {
-        alert("No passwords to export.")
+// Generate a password based on current settings
+function generatePassword() {
+    if (!wordData) {
+        alert('Word data is still loading. Please try again in a moment.');
         return;
     }
     
-    let prefix = "data:text/csv;charset=utf-8,";
-    let header = "Password Value";
-    let csv = header + "\r\n";
-
-    var rows = []
-    passwordArray.forEach(element => {
-        rows.push([element])
-    });
-
-    rows.forEach(function(rowArray) {
-        let row = rowArray.join(",");
-        csv += row + "\r\n";
-    });
-
-    var encodedUri = prefix + encodeURIComponent(csv);
-	var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "passwords" + Date.now() + ".csv")
-    link.setAttribute("target", "_blank");
-    link.click();
-}
-
-// -------- VARIABLES --------
-
-// The array of passwords that have been generated so far
-var passwordArray = [];
-
-// The URL of the JSON file of animals / adjectives
-var url = "https://raw.githubusercontent.com/awhiskin/Password-Generator/master/words.json";
-
-// Get URL and read into response variable
-var httpRequest = new XMLHttpRequest();
-httpRequest.open("GET", url, false);
-httpRequest.send(null);
-
-var response = httpRequest.responseText;
-
-// JSON object parsed from the response
-var myObj = JSON.parse(response);
-
-var positives = myObj.positives;                        // Array of positive adjectives
-var animals = myObj.animals;                            // Array of animals
-var positives_object = myObj.positives_object;          // Array of positive adjectives, pertaining only to objects
-var geographical_objects = myObj.geographical_objects;  // Array of geographical features
-var simple_colours = myObj.simple_colours;              // Array of simple colours
-var simple_words = myObj.simple_words;                  // Array of simple words
-
-const defaultText = "<p>No passwords yet :(</p>";
-const defaultLength = 16;
-const defaultType = "complex";
-const defaultObjectType = "geographical";
-
-// -------- CODE --------
-
-// Wait document to finish loading before running code to replace default text
-document.addEventListener("DOMContentLoaded", function () {    
-	var listElement = document.getElementById("generated-passwords-list");
-    listElement.innerHTML = defaultText;
-
-    // Retain last selected type across sessions
-    let typeElement = document.getElementById("generated-complexity");
-    // Set event listener whenever selection is changed
-    typeElement.addEventListener("change", function() {
-        localStorage.setItem("generated-complexity", typeElement.value);
-    });
-    // Retrieve stored value from localStorage
-    let storedType = localStorage.getItem("generated-complexity");
-    if (storedType != null) { typeElement.value = storedType; }
-    else { typeElement.value = defaultType; }
-	
-	// Retain last selected object type across sessions
-    let objectTypeElement = document.getElementById("generated-object");
-    // Set event listener whenever selection is changed
-    objectTypeElement.addEventListener("change", function() {
-        localStorage.setItem("generated-object", objectTypeElement.value);
-    });
-    // Retrieve stored value from localStorage
-    let storedObjectType = localStorage.getItem("generated-object");
-    if (storedObjectType != null) { objectTypeElement.value = storedObjectType; }
-    else { objectTypeElement.value = defaultObjectType; }
+    let password = '';
     
-    // Retain password size across sessions
-    let lengthElement = document.getElementById("generated-length");
-    // Set event listener whenever selection is changed
-    lengthElement.addEventListener("change", function() {
-        localStorage.setItem("generated-length", lengthElement.value);
-    });
-    // Retrieve stored value from localStorage
-    let storedLength = localStorage.getItem("generated-length");
-    if (storedLength != null) { lengthElement.value = storedLength; }
-    else { lengthElement.value = defaultLength; }
-	
-	// verySimpleHandler();
-	typeHandler();
-});
-
-// Add listener to the list elements for when they're clicked;
-// when clicked, copy password to clipboard
-document.addEventListener('click', function (event) {
-    if (!event.target.matches('ul li')) { return; }
-
-	// Copy selected password string to clipboard
-	copyStringToClipboard(event.target.innerHTML);
-
-}, false);
-
-// -------- PASSWORD FUNCTIONS --------
-
-// Clears passwords from the passwords array and from the list on the page
-function clearPasswords() {
-    passwordArray = [];
-
-    var listElement = document.getElementById("generated-passwords-list");
-    listElement.innerHTML = defaultText;
-}
-
-function generatePasswords(num, clearAll) {
-    if (clearAll) { clearPasswords(); }
-    
-    var t0 = performance.now()
-	for (i = 0; i < num; i += 1) {
-		generatePassword();
-	}
-    var t1 = performance.now()
-    console.log("Call to generatePasswords(" + num + ") took " + (t1 - t0) + " milliseconds.")
-}
-
-// Generates a password using a random combination of adjectives and words, with numbers at the end
-function generatePassword() {
-    var word, adjective, password, remaining, listElement, listItem;
-    
-    var passwordLength = document.getElementById("generated-length").value;
-    if (passwordLength == null) { passwordLength = 8; }
-    
-    let object_type = document.getElementById("generated-object");
-    switch(object_type.value) {
-        case "animal":
-            word = getRandomElementFromArray(animals);
-            adjective = getRandomElementFromArray(positives);
+    switch(passwordSettings.type) {
+        case 'memorable':
+            password = generateMemorablePassword();
             break;
-        case "geographical":
-            word = getRandomElementFromArray(geographical_objects);
-            adjective = getRandomElementFromArray(positives_object);
+        case 'strong':
+            password = generateStrongPassword();
             break;
-        case "simple_mix":
-            word = getRandomElementFromArray(simple_words);
-            adjective = getRandomElementFromArray(simple_colours);
+        case 'complex':
+            password = generateComplexPassword();
             break;
-        default:
+        case 'random':
+            password = generateRandomPassword();
             break;
     }
-
-    type = document.getElementById("generated-complexity");
-    symbol_bool = document.getElementById("generated-symbol");
     
-    switch(type.value) {
-        case "very_simple":
-            // Force lowercase and add exactly 2 digits
-            word = word.toLowerCase();
-            password = word + getRandomInt(0, 9) + getRandomInt(0, 9);;
-            break;
-            
-        case "simple":
-            // Force lowercase and add exactly 2 digits
-            word = word.toLowerCase();
-            adjective = adjective.toLowerCase();
-            password = adjective + word + getRandomInt(0, 9) + getRandomInt(0, 9);
-            break;
-            
-        case "complex":
-            password = adjective + word + (symbol_bool.checked ? getRandomSymbol() : "") + 
-                      getRandomInt(0, 9) + getRandomInt(0, 9) + getRandomInt(0, 9);
-            break;
-            
-        case "random":
-            password = makeID(passwordLength);
-            break;
-            
-        default:
-            password = "default";
-            break;
+    // Ensure minimum length
+    while (password.length < passwordSettings.length) {
+        password += getRandomDigit();
     }
+    
+    // Add the password to the list
+    addPasswordToList(password);
+    
+    return password;
+}
 
-    // Length padding only applies to complex and random modes
-    if (type.value !== "simple" && type.value !== "very_simple" && password.length < passwordLength) {
-        remaining = passwordLength - password.length;
-        for (var i = 0; i < remaining; i += 1) {
-            password += getRandomInt(0, 9);
-        }
-    }
-
-    if (passwordArray.includes(password)) {
+// Generate multiple passwords
+function generateMultiplePasswords(count) {
+    clearPasswords();
+    for (let i = 0; i < count; i++) {
         generatePassword();
-        return false;
-    }
-
-    passwordArray.unshift(password);
-
-    listElement = document.getElementById("generated-passwords-list");
-    listElement.innerHTML = "";
-
-    for (i = 0; i < passwordArray.length; i += 1) {
-        listItem = document.createElement('li');
-        listItem.innerHTML = passwordArray[i];
-        listElement.appendChild(listItem);
     }
 }
 
-function typeHandler() {
-	var type = document.getElementById("generated-complexity");
-	var object_type = document.getElementById("generated-object");
-	let storedObjectType = localStorage.getItem("generated-object");
-	
-	switch(type.value) {
-		case "simple":
-			storedObjectType = localStorage.getItem("generated-object");
-			if (storedObjectType != null) { object_type.value = storedObjectType; }
-			else { object_type.value = defaultObjectType; }
-			object_type.disabled = false;
-			
-			symbol_bool = document.getElementById("generated-symbol");
-			symbol_bool.disabled = true;
-			symbol_bool.checked = false;
-			break;
-		case "very_simple":
-			localStorage.setItem("generated-object", object_type.value);
-			object_type.value = "simple_mix";
-			object_type.disabled = true;
-			symbol_bool = document.getElementById("generated-symbol");
-			symbol_bool.disabled = true;
-			symbol_bool.checked = false;
-			break;
-		case "random":
-			localStorage.setItem("generated-object", object_type.value);
-			object_type.value = "random";
-			object_type.disabled = true;
-			symbol_bool = document.getElementById("generated-symbol");
-			symbol_bool.disabled = true;
-			symbol_bool.checked = false;
-			break;
-		default:
-			storedObjectType = localStorage.getItem("generated-object");
-			if (storedObjectType != null) { object_type.value = storedObjectType; }
-			else { object_type.value = defaultObjectType; }
-			object_type.disabled = false;
-			
-			symbol_bool = document.getElementById("generated-symbol");
-			symbol_bool.disabled = false;
-			symbol_bool.checked = true;
-			break;
-	}
+// Generate a memorable password (words + numbers)
+function generateMemorablePassword() {
+    const adjectives = wordData.adjectives;
+    const nouns = wordData[passwordSettings.category];
+    
+    let adjective = getRandomItem(adjectives);
+    let noun = getRandomItem(nouns);
+    
+    // Convert to lowercase
+    adjective = adjective.toLowerCase();
+    noun = noun.toLowerCase();
+    
+    // Capitalize if uppercase option is enabled
+    if (passwordSettings.uppercase) {
+        adjective = capitalizeFirstLetter(adjective);
+        noun = capitalizeFirstLetter(noun);
+    }
+    
+    let password = adjective + noun;
+    
+    // Add numbers if option is enabled
+    if (passwordSettings.numbers) {
+        password += getRandomDigit() + getRandomDigit();
+    }
+    
+    // Add a symbol if option is enabled
+    if (passwordSettings.symbols) {
+        password += getRandomSymbol();
+    }
+    
+    return password;
 }
 
-function resetPage() {
-	localStorage.clear();
-	location.reload();
+// Generate a strong password (words + numbers + symbols)
+function generateStrongPassword() {
+    const wordList = wordData[passwordSettings.category];
+    
+    let word1 = getRandomItem(wordList);
+    let word2 = getRandomItem(wordList);
+    
+    // Ensure words are different
+    while (word1 === word2) {
+        word2 = getRandomItem(wordList);
+    }
+    
+    // Apply case settings
+    if (passwordSettings.uppercase) {
+        word1 = capitalizeFirstLetter(word1.toLowerCase());
+        word2 = capitalizeFirstLetter(word2.toLowerCase());
+    } else {
+        word1 = word1.toLowerCase();
+        word2 = word2.toLowerCase();
+    }
+    
+    let password = word1 + word2;
+    
+    // Add numbers if option is enabled
+    if (passwordSettings.numbers) {
+        password += getRandomDigit() + getRandomDigit() + getRandomDigit();
+    }
+    
+    // Add symbols if option is enabled
+    if (passwordSettings.symbols) {
+        password = getRandomSymbol() + password + getRandomSymbol();
+    }
+    
+    return password;
+}
+
+// Generate a complex password (mixed characters)
+function generateComplexPassword() {
+    let chars = 'abcdefghijklmnopqrstuvwxyz';
+    
+    if (passwordSettings.uppercase) {
+        chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    }
+    
+    if (passwordSettings.numbers) {
+        chars += '0123456789';
+    }
+    
+    if (passwordSettings.symbols) {
+        chars += '!@#$%^&*_-+=';
+    }
+    
+    let password = '';
+    for (let i = 0; i < passwordSettings.length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    return password;
+}
+
+// Generate a completely random password
+function generateRandomPassword() {
+    const length = passwordSettings.length;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_-+=';
+    
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    
+    return password;
+}
+
+// Add a password to the displayed list
+function addPasswordToList(password) {
+    // Store password
+    passwordList.unshift(password);
+    
+    // Update the UI
+    updatePasswordList();
+}
+
+// Update the password list in the UI
+function updatePasswordList() {
+    // Clear current list
+    elements.passwordList.innerHTML = '';
+    
+    // Show message if no passwords
+    if (passwordList.length === 0) {
+        const emptyItem = document.createElement('li');
+        emptyItem.className = 'empty-message';
+        emptyItem.textContent = 'No passwords generated yet';
+        elements.passwordList.appendChild(emptyItem);
+        return;
+    }
+    
+    // Add passwords to list
+    passwordList.forEach(password => {
+        const listItem = document.createElement('li');
+        listItem.textContent = password;
+        elements.passwordList.appendChild(listItem);
+    });
+}
+
+// Clear all passwords
+function clearPasswords() {
+    passwordList = [];
+    updatePasswordList();
+}
+
+// Export passwords to CSV file
+function exportPasswordsToCSV() {
+    if (passwordList.length === 0) {
+        alert('No passwords to export.');
+        return;
+    }
+    
+    // Create CSV content
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    csvContent += 'Password\r\n';
+    
+    passwordList.forEach(password => {
+        csvContent += `"${password}"\r\n`;
+    });
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `passwords-${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    
+    // Trigger download and clean up
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Reset all settings to defaults
+function resetAllSettings() {
+    passwordSettings = {
+        type: 'strong',
+        category: 'nature',
+        length: 16,
+        uppercase: true,
+        numbers: true,
+        symbols: true
+    };
+    
+    clearPasswords();
+    saveSettings();
+    updateUI();
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    localStorage.setItem('passwordSettings', JSON.stringify(passwordSettings));
+}
+
+// Load settings from localStorage
+function loadSettings() {
+    const savedSettings = localStorage.getItem('passwordSettings');
+    if (savedSettings) {
+        passwordSettings = JSON.parse(savedSettings);
+    }
+}
+
+// Update UI to match current settings
+function updateUI() {
+    elements.typeSelect.value = passwordSettings.type;
+    elements.categorySelect.value = passwordSettings.category;
+    elements.lengthInput.value = passwordSettings.length;
+    elements.lengthValue.textContent = passwordSettings.length;
+    elements.uppercaseCheckbox.checked = passwordSettings.uppercase;
+    elements.numbersCheckbox.checked = passwordSettings.numbers;
+    elements.symbolsCheckbox.checked = passwordSettings.symbols;
+    
+    handleTypeChange();
+}
+
+// Helper function: Get random item from array
+function getRandomItem(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+// Helper function: Get random digit
+function getRandomDigit() {
+    return Math.floor(Math.random() * 10).toString();
+}
+
+// Helper function: Get random symbol
+function getRandomSymbol() {
+    const symbols = '!@#$%^&*_-+=';
+    return symbols.charAt(Math.floor(Math.random() * symbols.length));
+}
+
+// Helper function: Capitalize first letter
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Helper function: Copy text to clipboard
+function copyToClipboard(text) {
+    // Create temporary element
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    
+    // Select and copy
+    el.select();
+    document.execCommand('copy');
+    
+    // Clean up
+    document.body.removeChild(el);
+}
+
+// Helper function: Show toast notification
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 1000);
 }
