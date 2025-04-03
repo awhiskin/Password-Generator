@@ -291,7 +291,8 @@
   }
   
   #password-list {
-	list-style: none;
+	/* list-style: none; */
+	list-style-position: inside;
 	flex-grow: 1;
 	overflow-y: auto;
 	border: 1px solid var(--border-color);
@@ -300,14 +301,18 @@
   }
   
   #password-list li {
-	padding: 12px 15px;
+	padding: 0.5em 1em;
 	border-bottom: 1px solid var(--border-color);
 	cursor: pointer;
 	transition: var(--transition);
 	user-select: none;
 
-	/* font-family: monospace;
-	font-size: 1.1em; */
+	/* font-family: monospace; */
+	/* font-size: 1.1em; */
+  }
+
+  #password-list li::marker {
+	font-weight: bold;
   }
   
   #password-list li:hover {
@@ -319,6 +324,7 @@
   }
   
   .empty-message {
+	list-style: none;
 	color: var(--text-light);
 	/* font-style: italic; */
 	cursor: default !important;
