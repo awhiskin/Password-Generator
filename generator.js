@@ -214,7 +214,12 @@ function generatePassword() {
     
     // Ensure minimum length
     while (password.length < passwordSettings.length) {
-        password += getRandomDigit();
+        if (passwordSettings.numbers)
+            password += getRandomDigit();
+        else if (passwordSettings.symbols)
+            password += getRandomSymbol();
+        else
+            password += getRandomItem(wordData[passwordSettings.category]);
     }
     
     // Add the password to the list
