@@ -269,12 +269,17 @@
   .results-actions {
 	display: flex;
 	gap: 10px;
+	flex-wrap: wrap;
   }
   
   .helper-text {
 	color: var(--text-light);
 	font-size: 0.9rem;
 	margin-bottom: 15px;
+  }
+
+  #password-action-buttons {
+	flex-flow: row;
   }
   
   #password-list {
