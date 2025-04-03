@@ -7,8 +7,8 @@ let passwordSettings = {
     category: 'nature',
     length: 16,
     uppercase: true,
-    numbers: true,
-    symbols: true
+    numbers: false,
+    symbols: false
 };
 
 // DOM Elements
