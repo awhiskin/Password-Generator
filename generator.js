@@ -230,7 +230,7 @@ function generatePassword() {
 
 // Generate multiple passwords
 function generateMultiplePasswords(count) {
-    clearPasswords();
+    // clearPasswords();
     for (let i = 0; i < count; i++) {
         generatePassword();
     }
@@ -417,7 +417,7 @@ function resetAllSettings() {
         symbols: false
     };
     
-    clearPasswords();
+    // clearPasswords();
     saveSettings();
     updateUI();
 }
