@@ -9,7 +9,7 @@
 	--background-color: #f8f9fa;
 	--card-color: #ffffff;
 	--border-color: #e9ecef;
-	--success-color: #06d6a0;
+	--success-color: #058C42;
 	--shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	--border-radius: 8px;
 	--transition: all 0.3s ease;
@@ -203,6 +203,16 @@
   
   .warning-btn:hover {
 	background-color: #e63e65;
+  }
+
+  .success-btn {
+	background-color: #06B153; 
+	color: white;
+  }
+
+  .success-btn:hover {
+	background-color: var(--success-color);
+	
   }
   
   /* Dropdown */
